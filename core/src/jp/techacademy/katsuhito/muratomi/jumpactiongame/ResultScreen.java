@@ -16,6 +16,9 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
+import static jp.techacademy.katsuhito.muratomi.jumpactiongame.GameScreen.GAME_CLEAR;
+import static jp.techacademy.katsuhito.muratomi.jumpactiongame.GameScreen.GAME_STATE_GAMEOVER;
+
 public class ResultScreen extends ScreenAdapter {
     static final float GUI_WIDTH = 320;
     static final float GUI_HEIGHT = 480;
@@ -26,13 +29,15 @@ public class ResultScreen extends ScreenAdapter {
     FitViewport mGuiViewPort;
     BitmapFont mFont;
     Music music;
-
+    int Gamestate;
     int mScore;
 
-    public ResultScreen(JumpActionGame game, int score) {
+
+    public ResultScreen(JumpActionGame game, int score, int mGameState) {
 
         mGame = game;
         mScore = score;
+        Gamestate = mGameState;
 
         // 背景の準備
         Texture bgTexture = new Texture("resultback.png");
@@ -47,10 +52,17 @@ public class ResultScreen extends ScreenAdapter {
 
         // フォント
         mFont = new BitmapFont(Gdx.files.internal("font.fnt"), Gdx.files.internal("font.png"), false);
+        if(mGameState==GAME_CLEAR){
+            music = Gdx.audio.newMusic(Gdx.files.internal("gameclear.mp3"));
+            music.setVolume(1.0f);
+            music.setLooping(true);
+        }else if(mGameState==GAME_STATE_GAMEOVER){
+            music = Gdx.audio.newMusic(Gdx.files.internal("gameover1.mp3"));
+            music.setVolume(1.0f);
+            music.setLooping(true);
+        }
 
-        music=Gdx.audio.newMusic(Gdx.files.internal("gameover1.mp3"));
-        music.setVolume(1.0f);
-        music.setLooping(true);
+
         music.play();
     }
 
@@ -63,12 +75,22 @@ public class ResultScreen extends ScreenAdapter {
         // カメラの座標をアップデート（計算）し、スプライトの表示に反映させる
         mGuiCamera.update();
         mGame.batch.setProjectionMatrix(mGuiCamera.combined);
+        if (Gamestate== GAME_CLEAR){
 
-        mGame.batch.begin();
-        mBg.draw(mGame.batch);
-        mFont.draw(mGame.batch, "Score: " + mScore, 0, GUI_HEIGHT / 2 + 40, GUI_WIDTH, Align.center, false);
-        mFont.draw(mGame.batch, "Retry?", 0, GUI_HEIGHT / 2 - 40, GUI_WIDTH, Align.center, false);
-        mGame.batch.end();
+            mGame.batch.begin();
+            mBg.draw(mGame.batch);
+            mFont.draw(mGame.batch, "Score: " + mScore, 0, GUI_HEIGHT / 2 + 40, GUI_WIDTH, Align.center, false);
+            mFont.draw(mGame.batch, "Congratulations!!!!", 0, GUI_HEIGHT / 2 - 40, GUI_WIDTH, Align.center, false);
+            mGame.batch.end();
+        }else if(Gamestate== GAME_STATE_GAMEOVER) {
+            mGame.batch.begin();
+            mBg.draw(mGame.batch);
+            mFont.draw(mGame.batch, "Score: " + mScore, 0, GUI_HEIGHT / 2 + 40, GUI_WIDTH, Align.center, false);
+            mFont.draw(mGame.batch, "Retry??", 0, GUI_HEIGHT / 2 - 40, GUI_WIDTH, Align.center, false);
+            mGame.batch.end();
+        }
+
+
 
         if (Gdx.input.justTouched()) {
             mGame.setScreen(new GameScreen(mGame));

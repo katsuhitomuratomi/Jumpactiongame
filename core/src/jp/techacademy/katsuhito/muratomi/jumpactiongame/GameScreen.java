@@ -27,13 +27,14 @@ public class GameScreen extends ScreenAdapter {
     static final float CAMERA_WIDTH = 10;
     static final float CAMERA_HEIGHT = 15;
     static final float WORLD_WIDTH = 10;
-    static final float WORLD_HEIGHT = 15 * 20;
+    static final float WORLD_HEIGHT = 15 * 5;//20面まである。ここで、ゲーム画面の縦の長さを調整
     static final float GUI_WIDTH = 320;
     static final float GUI_HEIGHT = 480;
 
     static final int GAME_STATE_READY = 0;
     static final int GAME_STATE_PLAYING = 1;
     static final int GAME_STATE_GAMEOVER = 2;
+    static final int GAME_CLEAR = 3;
 
     // 重力
     static final float GRAVITY = -12;
@@ -64,6 +65,7 @@ public class GameScreen extends ScreenAdapter {
     Sound sound;
     Sound soundjump;
     Sound coin;
+    Sound clear;
 
 
     public GameScreen(JumpActionGame game) {
@@ -108,9 +110,9 @@ public class GameScreen extends ScreenAdapter {
         music.play();
         //効果音のセット
         sound = Gdx.audio.newSound(Gdx.files.internal("over.wav"));
-        soundjump= Gdx.audio.newSound(Gdx.files.internal("jump.wav"));
-        coin =Gdx.audio.newSound(Gdx.files.internal("coincoin.wav"));
-
+        soundjump = Gdx.audio.newSound(Gdx.files.internal("jump.wav"));
+        coin = Gdx.audio.newSound(Gdx.files.internal("coincoin.wav"));
+        clear = Gdx.audio.newSound(Gdx.files.internal("clear.wav"));
 
 
     }
@@ -188,7 +190,7 @@ public class GameScreen extends ScreenAdapter {
         Texture enemyTexture = new Texture("enemy.png");
 
         // StepとStarをゴールの高さまで配置していく
-        float y = 0;
+        float y = 5;
 
         float maxJumpHeight = Player.PLAYER_JUMP_VELOCITY * Player.PLAYER_JUMP_VELOCITY / (2 * -GRAVITY);
         while (y < WORLD_HEIGHT - 5) {
@@ -200,17 +202,14 @@ public class GameScreen extends ScreenAdapter {
             step.setPosition(x, y);
             mSteps.add(step);
             //敵の発生　動くStep周り敵が発生する
-            if(WORLD_HEIGHT>15){
-                if(type== Step.STEP_TYPE_MOVING){
-                    int typeenemy=step.STEP_TYPE_MOVING;
+            if (WORLD_HEIGHT > 15) {
+                if (type == Step.STEP_TYPE_MOVING) {
+                    int typeenemy = step.STEP_TYPE_MOVING;
                     Enemy enemy = new Enemy(typeenemy, enemyTexture, 0, 0, 72, 72);
                     enemy.setPosition(enemyx, y);
                     mEnemy.add(enemy);
                 }
             }
-
-
-
 
 
             if (mRandom.nextFloat() > 0.6f) {
@@ -244,6 +243,15 @@ public class GameScreen extends ScreenAdapter {
             case GAME_STATE_GAMEOVER:
                 updateGameOver();
                 break;
+            case GAME_CLEAR:
+                updateGameclear();
+                break;
+        }
+    }
+
+    private void updateGameclear() {
+        if (Gdx.input.justTouched()) {
+            mGame.setScreen(new ResultScreen(mGame, mScore, mGameState));
         }
     }
 
@@ -295,7 +303,7 @@ public class GameScreen extends ScreenAdapter {
 
     private void updateGameOver() {
         if (Gdx.input.justTouched()) {
-            mGame.setScreen(new ResultScreen(mGame, mScore));
+            mGame.setScreen(new ResultScreen(mGame, mScore, mGameState));
         }
 
     }
@@ -304,15 +312,17 @@ public class GameScreen extends ScreenAdapter {
 
         // UFO(ゴールとの当たり判定)
         if (mPlayer.getBoundingRectangle().overlaps(mUfo.getBoundingRectangle())) {
+            clear.play();
             Gdx.app.log("JampActionGame", "CLEAR");
-            mGameState = GAME_STATE_GAMEOVER;
+            mGameState = GAME_CLEAR;
+            music.stop();
             return;
 
         }
         //ENEMY（敵との当たり判定）
 
-        for(int i=0;i<mEnemy.size();i++){
-            Enemy enemy=mEnemy.get(i);
+        for (int i = 0; i < mEnemy.size(); i++) {
+            Enemy enemy = mEnemy.get(i);
             if (mPlayer.getBoundingRectangle().overlaps(enemy.getBoundingRectangle())) {
                 Gdx.app.log("JampActionGame", "GAMEOVER");
                 sound.play(1.0f);
