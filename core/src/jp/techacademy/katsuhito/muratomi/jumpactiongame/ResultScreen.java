@@ -36,6 +36,9 @@ public class ResultScreen extends ScreenAdapter {
     public ResultScreen(JumpActionGame game, int score, int mGameState) {
 
         mGame = game;
+        if (mGame.mRequestHandler != null) {
+            mGame.mRequestHandler.showAds(true);
+        }
         mScore = score;
         Gamestate = mGameState;
 
@@ -93,6 +96,10 @@ public class ResultScreen extends ScreenAdapter {
 
 
         if (Gdx.input.justTouched()) {
+            if (mGame.mRequestHandler != null) {
+                mGame.mRequestHandler.showAds(false);
+            }
+
             mGame.setScreen(new GameScreen(mGame));
             music.stop();
         }
